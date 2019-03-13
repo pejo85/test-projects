@@ -1,0 +1,345 @@
+import turtle
+import random
+
+playing = "playing"
+x_ball_speed = 0.5
+y_ball_speed = 0.5
+stick_speed = 10
+bricks = []
+brick_stretch_length = 3.5
+interval_between_bricks_x = 90
+interval_between_bricks_y = 20
+score = 0
+live = 5
+kick_starter = -1
+bricks_align_index = 0
+brick_propertyes = []
+stage_num = 0
+stage = 1
+
+stage1 = ['101101',
+          '101101',
+          '102201',
+          '100001',
+          '133331',
+          '100001']
+stage2 = ['111111',
+          '122221',
+          '123321',
+          '123321',
+          '122221',
+          '111111']
+stage3 = [
+          '333333']
+
+stages = [stage1,stage2,stage3]
+
+
+wn = turtle.Screen()
+wn.bgcolor("black")
+wn.tracer(2)
+wn.delay(1)
+
+#create border
+border = turtle.Turtle()
+border.penup()
+border.setposition(-300,-300)
+border.speed(0)
+border.color("white")
+border.pendown()
+for i in range(4):
+    border.forward(600)
+    border.left(90)
+    border.hideturtle()
+
+#create stick
+stick = turtle.Turtle()
+stick.penup()
+stick.setposition(-25,-280)
+stick.speed(0)
+stick.color("#3399ff")
+stick.begin_fill()
+stick.shape("square")
+stick.shapesize(0.5,4,5)
+stick.end_fill()
+
+#create ball
+ball = turtle.Turtle()
+ball.penup()
+ball.setposition(0,-260)
+ball.speed(0)
+ball.color("#C0C0C0")
+ball.shape("circle")
+ball.shapesize(0.7,0.7,0.7)
+
+#create game over text
+game_over_text = turtle.Turtle()
+game_over_text.penup()
+game_over_text.setposition(-100,0)
+game_over_text.speed(0)
+game_over_text.color("red")
+game_over_text.hideturtle()
+
+#create score
+score_text = turtle.Turtle()
+score_text.speed(0)
+score_text.color("white")
+score_text.penup()
+score_text.setposition(-290, 310)
+score_text.hideturtle()
+score_format = "Score: %s" % score
+score_text.write(score_format, align="left", font=("Arial", 14, "normal"))
+score_text.hideturtle()
+
+#create live
+score_live = turtle.Turtle()
+score_live.speed(0)
+score_live.color("white")
+score_live.penup()
+score_live.setposition(290, 310)
+score_live.hideturtle()
+live_format = "Live: %s" % live
+score_live.write(live_format, align="right", font=("Arial", 14, "normal"))
+score_live.hideturtle()
+
+#create STAGE text
+stage_text = turtle.Turtle()
+stage_text.penup()
+stage_text.setposition(-50, 310)
+stage_text.speed(0)
+stage_text.color("red")
+stage_text.hideturtle()
+stage_format = "stage %s" % stage
+stage_text.write(stage_format, align="left", font=("Arial", 30, "normal"))
+
+#choose colors
+def choose_color(brick_strenght):
+    color = ""
+    if brick_strenght == "weak_brick":
+        color = "#00FF00"
+    elif brick_strenght == "medium_brick":
+        color = "#FFFF33"
+    elif brick_strenght == "hard_brick":
+        color = "#FF0000"
+    return color
+
+#chooe brick difficult
+def chooe_brick_strength(brick_strenght):
+    kick_difficult = int
+    if brick_strenght == "weak_brick":
+        kick_difficult = 1
+    elif brick_strenght == "medium_brick":
+        kick_difficult = 2
+    elif brick_strenght == "hard_brick":
+        kick_difficult = 3
+    return kick_difficult
+
+#create bricks
+def align_bricks():
+    bricks_align_index = 0
+    global x_brick,brick_propertyes
+    x_brick = -225
+    y_brick = 270
+    for row in stages[stage_num]:
+        for col in row:
+            if col == "0":
+                x_brick += interval_between_bricks_x
+                if x_brick > 225:
+                    x_brick = -225
+                    y_brick -= interval_between_bricks_y
+            elif col == "1" or col == "2" or col == "3":
+
+                print(f"bricks_align_index = {bricks_align_index}")
+                brick_propertyes.append(bricks_align_index)
+                brick_propertyes[bricks_align_index] = {}
+                brick_propertyes[bricks_align_index]["object"] = turtle.Turtle()
+                brick_propertyes[bricks_align_index]["bricks_align_index"] = bricks_align_index
+                brick_propertyes[bricks_align_index]["x_brick_cor"] = x_brick
+                brick_propertyes[bricks_align_index]["y_brick_cor"] = y_brick
+                if col == "1":
+                    brick_propertyes[bricks_align_index]["color"] = choose_color("weak_brick")
+                    brick_propertyes[bricks_align_index]["kick_difficult"] = chooe_brick_strength("weak_brick")
+                elif col == "2":
+                    brick_propertyes[bricks_align_index]["color"] = choose_color("medium_brick")
+                    brick_propertyes[bricks_align_index]["kick_difficult"] = chooe_brick_strength("medium_brick")
+                elif col == "3":
+                    brick_propertyes[bricks_align_index]["color"] = choose_color("hard_brick")
+                    brick_propertyes[bricks_align_index]["kick_difficult"] = chooe_brick_strength("hard_brick")
+                x_brick += interval_between_bricks_x
+                if x_brick > 225:
+                    y_brick -= interval_between_bricks_y
+                    x_brick = -225
+                bricks_align_index += 1
+
+def show_brick_on_desktop():
+    for bricks in brick_propertyes:
+        x_brick_cor = bricks["x_brick_cor"]
+        y_brick_cor = bricks["y_brick_cor"]
+        brick_color = bricks["color"]
+        bricks["object"].penup()
+        bricks["object"].setposition(x_brick_cor, y_brick_cor)
+        bricks["object"].speed(0)
+        bricks["object"].color(brick_color)
+        bricks["object"].shape("square")
+        bricks["object"].shapesize(0.5, brick_stretch_length, 5)
+
+def game_over_manually():
+    global playing
+    playing = "game over"
+    game_over_text.write("Quitting Game", False, align="left", font=("Arial", 30, "normal"))
+
+def game_over():
+    global playing, live, y_ball_speed, x_ball_speed
+    if live == 0:
+        ball.hideturtle()
+        playing = "game over"
+        game_over_text.write(playing, False, align="left", font=("Arial", 30, "normal"))
+    if ball.ycor() < -320:
+        live -= 1
+        ball.setposition(0, -260)
+        y_ball_speed = 0.5
+        x_ball_speed = 0.5
+        score_live.clear()
+        live_format = "Live: %s" % live
+        score_live._write(live_format, align="right", font=("Arial", 14, "normal"))
+        kick_begin()
+    elif len(stages) == 0:
+        playing = "You win!!!"
+        game_over_text.write(playing, False, align="left", font=("Arial", 30, "normal"))
+
+def ball_reverce():
+    global x_ball_speed
+    global y_ball_speed
+    if ball.xcor() >290 or ball.xcor() < -290:
+        x_ball_speed *=-1
+    if ball.ycor() >290:
+        y_ball_speed *=-1
+
+def stick_move_left():
+    x_stick = stick.xcor()
+    x_stick -= stick_speed
+    if x_stick < -250:
+        x_stick = -250
+    stick.setx(x_stick)
+
+def stick_move_right():
+    x_stick = stick.xcor()
+    x_stick += stick_speed
+    if x_stick >250:
+        x_stick = 250
+    stick.setx(x_stick)
+
+def collision():
+    global score
+    global x_ball_speed
+    global y_ball_speed
+    # collision with stick
+    x_stick = stick.xcor()
+    y_stick = stick.ycor()
+    x_ball = ball.xcor()
+    y_ball = ball.ycor()
+    # moxvda dablidan an maglidan
+    if (x_ball > (x_stick - 50) and x_ball < (x_stick - 25)) and (y_ball > (y_stick - 15) and y_ball < (y_stick + 15)):
+        y_ball_speed *= -1
+        x_ball_speed *=2
+    elif (x_ball > (x_stick - 25) and x_ball < (x_stick + 25)) and (y_ball > (y_stick - 15) and y_ball < (y_stick + 15)):
+        y_ball_speed *= -1
+        x_ball_speed *=0.5
+    elif (x_ball > (x_stick + 25) and x_ball < (x_stick + 50)) and (y_ball > (y_stick - 15) and y_ball < (y_stick + 15)):
+        y_ball_speed *= -1
+        x_ball_speed *=2
+    # moxvda gverdebze
+    if (x_ball > (x_stick - 52) and x_ball <= (x_stick - 50)) and (y_ball > (y_stick - 15) and y_ball < (y_stick + 15)):
+        x_ball_speed *= -1
+    elif (x_ball >= (x_stick + 50) and x_ball < (x_stick + 52)) and (y_ball > (y_stick - 15) and y_ball < (y_stick + 15)):
+        x_ball_speed *= -1
+
+    # collision with brick
+    for bricks in brick_propertyes:
+        global score
+        x_brick = bricks["x_brick_cor"]
+        y_brick = bricks["y_brick_cor"]
+        # moxvda dablidan an maglidan
+        if (x_ball > (x_brick - 50) and x_ball < (x_brick + 50)) and (y_ball > (y_brick - 15) and y_ball < (y_brick + 15)):
+            y_ball_speed *= -1
+            bricks["kick_difficult"] -= 1
+            if bricks["kick_difficult"] == 0:
+                bricks["object"].hideturtle()
+                brick_propertyes.remove(bricks)
+            score += 10
+            score_text.clear()
+            score_format = "Score: %s" % score
+            score_text._write(score_format, align="left", font=("Arial", 14, "normal"))
+        # moxvda gverdebze
+        if (x_ball > (x_brick - 52) and x_ball <= (x_brick - 50)) and (y_ball > (y_brick - 15) and y_ball < (y_brick + 15)):
+            x_ball_speed *= -1
+            bricks["kick_difficult"] -= 1
+            if bricks["kick_difficult"] == 0:
+                bricks["object"].hideturtle()
+                brick_propertyes.remove(bricks)
+            score += 10
+            score_text.clear()
+            score_string = "Score: %s" % score
+            score_text._write(score_string, align="left", font=("Arial", 14, "normal"))
+        elif (x_ball >= (x_brick + 50) and x_ball < (x_brick +52)) and (y_ball > (y_brick - 15) and y_ball < (y_brick + 15)):
+            x_ball_speed *= -1
+            bricks["kick_difficult"] -= 1
+            if bricks["kick_difficult"] == 0:
+                bricks["object"].hideturtle()
+                brick_propertyes.remove(bricks)
+            score += 10
+            score_text.clear()
+            score_string = "Score: %s" % score
+            score_text._write(score_string, align="left", font=("Arial", 14, "normal"))
+
+def kick_begin():
+    global kick_starter
+    kick_starter *= -1
+
+#Keyboard
+wn.listen()
+wn.onkeypress(stick_move_left, "Left")
+wn.onkeypress(stick_move_right, "Right")
+wn.onkeypress(game_over_manually, "q")
+
+align_bricks()
+show_brick_on_desktop()
+
+#main game
+def main():
+    global stage_num, stage
+    while playing == "playing":
+        game_over()
+        #roca stage-X daxurav..
+        if len(brick_propertyes) == 0:
+            stage += 1
+            stage_text.clear()
+            stage_format = "stage %s" % stage
+            stage_text._write(stage_format, align="left", font=("Arial", 30, "normal"))
+            stage_num += 1
+            ball.setposition(0, -260)
+            kick_begin()
+            align_bricks()
+            show_brick_on_desktop()
+        if kick_starter == -1 :
+            wn.onkeypress(kick_begin, " ")
+            wn.update()
+        elif kick_starter == 1:
+            #move ball
+            x_ball = ball.xcor()
+            y_ball = ball.ycor()
+            x_ball += x_ball_speed
+            y_ball += y_ball_speed
+            ball.setx(x_ball)
+            ball.sety(y_ball)
+            ball_reverce()
+            collision()
+
+
+main()
+
+
+
+
+turtle.done()
+
